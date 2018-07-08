@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Matching</title>
+    
+    <style>
+        
+        .container{
+            width: 80%;
+            margin:0 auto;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        #choices:after{
+            display: table;
+            content: "";
+            clear:both;
+            padding: 20px;
+        }
+        
+        .option{
+/*            margin-right: 25px;*/
+            border: 1px solid black;
+            min-height: 200px;
+            width:48%;
+            display:inline-block;
+            float: left;
+            position:relative;
+        }
+        
+        #A{
+            float: left;
+        }
+        
+        #B{
+            float:right;
+        }
+        
+        .option h1{
+            text-align: center;
+        }
+        
+        .option button{
+            margin-top: 20px;
+            color:white;
+            background-color:cornflowerblue;
+            padding: 5px;
+            border:.5px solid grey;
+            border-radius: 5px;
+        }
+        
+        #submit{
+            width: 75%;
+            margin: 0 auto;
+        }
+        
+        #commit{
+            color:white;
+            background-color:green;
+            padding: 5px;
+            border:.5px solid green;
+            border-radius: 5px;
+        }
+        #commit:hover{
+            cursor: pointer;
+            padding:7px;
+        }
+        #commit:active{
+            padding: 5px;
+        }
+        
+        select{ 
+            padding:5px;
+        }
+
+        
+        
+        #log{
+            margin-top: 50px;
+            
+        }
+        #log th, td{
+            text-align: center;
+            min-width:100px;
+        }
+/*
+        
+        .table-container{
+            width:80%;
+            margin: 30px auto;
+        }
+*/
+    </style>
+</head>
+<body>
+   
+    <div id="choices" class="container">
+       <h1>Ready to Play! - Experiment <span id="exp"></span> </h1>
+       <div id="A" class="option">
+         <h1>Option A</h1>
+          <h1>?</h1>
+           <button>Sample</button>
+       </div>
+       <div id="B" class="option B">
+         <h1>Option B</h1>
+          <h1>?</h1>
+          <button>Sample</button>
+           
+       </div>   
+    </div>
+    <br>
+    <div class="container">
+        <div id="submit">
+               <select name="" id="submit">
+                  <option value="" disabled>Please Select An Option</option>
+                   <option value="A">Option A</option>
+                   <option value="B">Option B</option>
+               </select>
+               <input id="commit" type="submit">
+       </div>
+       
+    <div id="table-div" class="table-container">
+        
+    </div>
+    </div>
+    
+    <script>
+    (function(){
+        var A = 5;
+        var nextGambleNumber = 21;
+        var experiments = [
+            {gamble:1  ,optionA:[1.25,.25], aFirstWeight:.40, optionB:[.45,.10], bFirstWeight:.95},
+            {gamble:2  ,optionA:[.75, .20], aFirstWeight:.40, optionB:[.90,.15], bFirstWeight:.90},
+            {gamble:3  ,optionA:[1.1, .25], aFirstWeight:.45, optionB:[1.5,.14], bFirstWeight:.05},
+            {gamble:4  ,optionA:[.50, .15], aFirstWeight:.75, optionB:[.95,.10], bFirstWeight:.60},
+            {gamble:5  ,optionA:[.75, .20], aFirstWeight:.80, optionB:[.50,.35], bFirstWeight:.70},
+            {gamble:6  ,optionA:[.60, .30], aFirstWeight:.75, optionB:[.30,.45], bFirstWeight:.50},
+            {gamble:7  ,optionA:[1.2, .20], aFirstWeight:.40, optionB:[.85,.50], bFirstWeight:.30},
+            {gamble:8  ,optionA:[.70, .30], aFirstWeight:.25, optionB:[.50,.20], bFirstWeight:.65},
+            {gamble:9  ,optionA:[.80, .10], aFirstWeight:.70, optionB:[.70,.15], bFirstWeight:.80},
+            {gamble:10 ,optionA:[1.0, .20], aFirstWeight:.50, optionB:[.70,.30], bFirstWeight:.75},
+            {gamble:11 ,optionA:[1.1, .35], aFirstWeight:.40, optionB:[.45,.20], bFirstWeight:.90, isLoss: true},
+            {gamble:12 ,optionA:[.55, .30], aFirstWeight:.40, optionB:[.85,.25], bFirstWeight:.95, isLoss: true},
+            {gamble:13 ,optionA:[1.15,.20], aFirstWeight:.45, optionB:[1.4,.40], bFirstWeight:.05, isLoss: true},
+            {gamble:14 ,optionA:[.45, .25], aFirstWeight:.80, optionB:[.90,.20], bFirstWeight:.60, isLoss: true},
+            {gamble:15 ,optionA:[.80, .20], aFirstWeight:.75, optionB:[.60,.20], bFirstWeight:.65, isLoss: true},
+            {gamble:16 ,optionA:[.65, .15], aFirstWeight:.75, optionB:[.60,.40], bFirstWeight:.65, isLoss: true},
+            {gamble:17 ,optionA:[1.15,.25], aFirstWeight:.40, optionB:[.80,.45], bFirstWeight:.45, isLoss: true},
+            {gamble:18 ,optionA:[.65, .30], aFirstWeight:.30, optionB:[.55,.20], bFirstWeight:.60, isLoss: true},
+            {gamble:19 ,optionA:[.80, .20], aFirstWeight:.65, optionB:[.75,.30], bFirstWeight:.65, isLoss: true},
+            {gamble:20 ,optionA:[.90, .15], aFirstWeight:.60, optionB:[.75,.15], bFirstWeight:.75, isLoss: true},
+        ]
+        
+        function getRandomInt(max) {
+          return Math.floor(Math.random() * Math.floor(max));
+        }
+        
+        var currentExperiment = getRandomInt(experiments.length);
+        var exp = document.querySelector("#exp");
+        exp.innerText = (experiments[currentExperiment]["gamble"]);
+        
+        var sampleCount = 0;
+        var gamesPlayed = 0;
+        
+        var getNextOptionValue = function(option){
+            var val = Math.random();
+            var opt = "option"+option.toUpperCase();
+            var exper = experiments[currentExperiment];
+            var wght = option.toLowerCase() + "FirstWeight"
+            if(val < exper[wght]) {
+                return exper[opt][0].toFixed(2);
+            }
+                return exper[opt][1].toFixed(2);
+        }
+        
+        var currentAOption = getNextOptionValue("a");
+        var currentBOption = getNextOptionValue("b");
+        var buttons = document.querySelectorAll(".option button");
+        for(var i = 0; i < buttons.length; i++){
+            buttons[i].addEventListener("click", function(e){
+                var p = e.target.parentElement;
+                if(p.getAttribute("id") == "A"){
+                    currentAOption = getNextOptionValue("a");
+                    p.firstElementChild.nextElementSibling.innerHTML = currentAOption;
+                    console.log(getNextOptionValue("a"));
+                }
+                else{
+                    currentBOption = getNextOptionValue("b");
+                    p.firstElementChild.nextElementSibling.innerHTML = currentBOption;
+                    console.log(getNextOptionValue("b"));
+                }
+                sampleCount++;
+                setTimeout(function(){
+                    e.target.parentElement.firstElementChild.nextElementSibling.innerHTML = "?";
+                },200);
+                
+            })
+        }
+        
+        var commit = document.querySelector("#commit");
+
+        var getOption = function(){
+            return document.querySelector("select").value;
+        }
+        var resetBoard = function(){
+//            alert("You sampled " + sampleCount + " times and selected " + getOption());
+            log(experiments[currentExperiment]["gamble"], getOption(), sampleCount);
+            sampleCount = 0;
+            currentExperiment = getRandomInt(experiments.length);
+            currentAOption = getNextOptionValue("a");
+            currentBOption = getNextOptionValue("b");
+            exp.innerText = experiments[currentExperiment]['gamble'];
+            
+         
+        }
+        
+        var log = function(Gamble, selection, SampleCount){
+            if(gamesPlayed == 0){
+               var b = document.querySelector("#table-div");
+                console.log("body")
+                var tab = document.createElement("table");
+                console.log("table");
+                tab.setAttribute("id", "log");
+                var tr = document.createElement("tr");
+                console.log("tr")
+                var th_num = document.createElement("th");
+                th_num.innerText = "#";
+                var th_gamble = document.createElement("th");
+                th_gamble.innerText = "Gamble";
+                var th_selection = document.createElement("th")
+                th_selection.innerText = "Selection";
+                var th_sampcnt = document.createElement("th")
+                th_sampcnt.innerText = "Sample Count"; 
+                var winnings = document.createElement("th");
+                winnings.innerText = "Loss/Gain";
+                tr.appendChild(th_num);
+                tr.appendChild(th_gamble);
+                tr.appendChild(th_selection);
+                tr.appendChild(th_sampcnt);
+                tr.appendChild(winnings);
+                tab.appendChild(tr);
+                b.appendChild(tab);
+            }
+            
+                var t = document.querySelector("#log")
+                var tr = document.createElement("tr");
+                var th_num = document.createElement("td")
+                th_num.innerText = ++gamesPlayed;
+                var th_gamble = document.createElement("td")
+                th_gamble.innerText = Gamble;
+                var th_selection = document.createElement("td")
+                th_selection.innerText = selection;
+                var th_sampcnt = document.createElement("td")
+                th_sampcnt.innerText = sampleCount;
+                var winnings = document.createElement("td")
+                winnings.innerText = selection === "A"? getNextOptionValue("a") : getNextOptionValue("b");
+                tr.appendChild(th_num);
+                tr.appendChild(th_gamble);
+                tr.appendChild(th_selection);
+                tr.appendChild(th_sampcnt);
+                tr.appendChild(winnings);
+                t.appendChild(tr);
+            
+        }
+        
+        
+        commit.addEventListener("click", resetBoard)
+            
+    })()
+    
+    </script>
+</body>
+</html>
